@@ -79,10 +79,14 @@ logging.info(f'{args.weights} with Noise 0.05 for CelebA Dataset')
 with torch.no_grad():
     # for file_ in tqdm(files):
     for idx, file_ in enumerate(tqdm(files)):
+        # print(file_)\
+        input_file = args.input_dir + f"/y_{idx}.png"
+        print(input_file)
         torch.cuda.ipc_collect()
         torch.cuda.empty_cache()
 
-        img = np.float32(utils.load_img(file_)) / 255.
+        # img = np.float32(utils.load_img(file_)) / 255.
+        img = np.float32(utils.load_img(input_file)) / 255.
         img = torch.from_numpy(img).permute(2, 0, 1)
         input_ = img.unsqueeze(0).cuda()
 
@@ -104,7 +108,9 @@ with torch.no_grad():
                        img_as_ubyte(restored))
 
         # Load original image
-        orig_img = np.float32(utils.load_img(args.original_dir + f"/orig_{idx}.png")) / 255.
+        origin_file = args.original_dir + f"/orig_{idx}.png"
+        print(origin_file)
+        orig_img = np.float32(utils.load_img(origin_file)) / 255.
         orig_img = torch.from_numpy(orig_img).permute(2, 0, 1)
         orig_img = orig_img.unsqueeze(0).cuda()
         # Calculate PSNR
