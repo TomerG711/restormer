@@ -31,8 +31,8 @@ parser.add_argument('--original_dir', default='./originals/', type=str)
 args = parser.parse_args()
 
 ####### Load yaml #######
-# yaml_file = '/opt/restormer/Motion_Deblurring/Options/Deblurring_Restormer.yml'
-yaml_file = '/opt/restormer/Defocus_Deblurring/Options/DefocusDeblur_Single_8bit_Restormer.yml'
+yaml_file = '/opt/restormer/Motion_Deblurring/Options/Deblurring_Restormer.yml'
+# yaml_file = '/opt/restormer/Defocus_Deblurring/Options/DefocusDeblur_Single_8bit_Restormer.yml'
 import yaml
 
 try:
@@ -68,6 +68,7 @@ lpips_loss_fn = lpips.LPIPS(net='alex')  # You can choose a different network ar
 lpips_loss_fn.cuda()
 psnr_values = []
 lpips_values = []
+
 # Set up logging
 log_file_path = os.path.join(args.result_dir, 'celeba_gauss_deblurring_0p05_log.txt')
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -81,26 +82,25 @@ with torch.no_grad():
     for idx, file_ in enumerate(tqdm(files)):
         # print(file_)\
         input_file = args.input_dir + f"/y_{idx}.png"
-        print(input_file)
+        # print(input_file)
         torch.cuda.ipc_collect()
         torch.cuda.empty_cache()
 
-        # img = np.float32(utils.load_img(file_)) / 255.
-        img = np.float32(utils.load_img(input_file)) / 255.
+        img = np.float32(utils.load_img(file_)) / 255.
         img = torch.from_numpy(img).permute(2, 0, 1)
         input_ = img.unsqueeze(0).cuda()
 
         # Padding in case images are not multiples of 8
-        h, w = input_.shape[2], input_.shape[3]
-        H, W = ((h + factor) // factor) * factor, ((w + factor) // factor) * factor
-        padh = H - h if h % factor != 0 else 0
-        padw = W - w if w % factor != 0 else 0
-        input_ = F.pad(input_, (0, padw, 0, padh), 'reflect')
-
+        # h, w = input_.shape[2], input_.shape[3]
+        # H, W = ((h + factor) // factor) * factor, ((w + factor) // factor) * factor
+        # padh = H - h if h % factor != 0 else 0
+        # padw = W - w if w % factor != 0 else 0
+        # input_ = F.pad(input_, (0, padw, 0, padh), 'reflect')
+        #
         restored = model_restoration(input_)
-
-        # Unpad images to original dimensions
-        restored = restored[:, :, :h, :w]
+        #
+        # # Unpad images to original dimensions
+        # restored = restored[:, :, :h, :w]
 
         restored = torch.clamp(restored, 0, 1).cpu().detach().permute(0, 2, 3, 1).squeeze(0).numpy()
 
@@ -109,7 +109,7 @@ with torch.no_grad():
 
         # Load original image
         origin_file = args.original_dir + f"/orig_{idx}.png"
-        print(origin_file)
+        # print(origin_file)
         orig_img = np.float32(utils.load_img(origin_file)) / 255.
         orig_img = torch.from_numpy(orig_img).permute(2, 0, 1)
         orig_img = orig_img.unsqueeze(0).cuda()
