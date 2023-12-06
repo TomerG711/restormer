@@ -21,4 +21,4 @@ WORKDIR /opt/restormer
 #RUN python setup.py develop --no_cuda_ext
 #CMD sleep infinity
 CMD python Motion_Deblurring/test.py --input_dir /opt/restormer/images/degraded --result_dir /opt/restormer/images/restored --weights /opt/restormer/models/motion_deblurring.pth --original_dir /opt/restormer/images/originals
-
+#CMD python Motion_Deblurring/download_data.py --data test

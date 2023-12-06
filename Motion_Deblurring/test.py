@@ -70,45 +70,49 @@ psnr_values = []
 lpips_values = []
 
 # Set up logging
-log_file_path = os.path.join(args.result_dir, 'celeba_gauss_deblurring_0p05_log.txt')
+log_file_path = os.path.join(args.result_dir, 'gopro_test_motion_deblurring_0p05_log.txt')
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
 logging.getLogger().addHandler(console_handler)
-logging.info(f'{args.weights} with Noise 0.05 for CelebA Dataset')
+logging.info(f'{args.weights} with Noise 0.05 for GoPro Test Dataset')
 
 with torch.no_grad():
     # for file_ in tqdm(files):
-    for idx, file_ in enumerate(tqdm(files)):
-        # print(file_)\
-        input_file = args.input_dir + f"/y_{idx}.png"
+    # for idx, file_ in enumerate(tqdm(files)):
+    for idx in range(1111):
+        # print(file_)
+        # file_name = file_.split('/')[-1]
+        # continue
+        input_file = args.input_dir + f"/Apy/y_{idx}.png"
         # print(input_file)
         torch.cuda.ipc_collect()
         torch.cuda.empty_cache()
 
-        img = np.float32(utils.load_img(file_)) / 255.
+        img = np.float32(utils.load_img(input_file)) / 255.
         img = torch.from_numpy(img).permute(2, 0, 1)
         input_ = img.unsqueeze(0).cuda()
 
         # Padding in case images are not multiples of 8
-        # h, w = input_.shape[2], input_.shape[3]
-        # H, W = ((h + factor) // factor) * factor, ((w + factor) // factor) * factor
-        # padh = H - h if h % factor != 0 else 0
-        # padw = W - w if w % factor != 0 else 0
-        # input_ = F.pad(input_, (0, padw, 0, padh), 'reflect')
+        h, w = input_.shape[2], input_.shape[3]
+        H, W = ((h + factor) // factor) * factor, ((w + factor) // factor) * factor
+        padh = H - h if h % factor != 0 else 0
+        padw = W - w if w % factor != 0 else 0
+        input_ = F.pad(input_, (0, padw, 0, padh), 'reflect')
         #
         restored = model_restoration(input_)
         #
         # # Unpad images to original dimensions
-        # restored = restored[:, :, :h, :w]
+        restored = restored[:, :, :h, :w]
 
         restored = torch.clamp(restored, 0, 1).cpu().detach().permute(0, 2, 3, 1).squeeze(0).numpy()
 
-        utils.save_img((os.path.join(result_dir, os.path.splitext(os.path.split(file_)[-1])[0] + '.png')),
+        utils.save_img((os.path.join(result_dir, os.path.splitext(os.path.split(input_file)[-1])[0] + '.png')),
                        img_as_ubyte(restored))
 
         # Load original image
-        origin_file = args.original_dir + f"/orig_{idx}.png"
+        origin_file = args.input_dir + f"/Apy/orig_{idx}.png"
+        # origin_file = args.original_dir + f"/{file_name}"
         # print(origin_file)
         orig_img = np.float32(utils.load_img(origin_file)) / 255.
         orig_img = torch.from_numpy(orig_img).permute(2, 0, 1)
@@ -134,3 +138,11 @@ logging.info(f'Average LPIPS: {average_lpips:.4f}')
 
 # Close the logging file handler
 logging.shutdown()
+
+"""
+TODO: 
+Run Restormer Over GoPRO with their degraded DONE
+Save the above results DONE
+Degrade GoPro with our method DONE but with 256x256
+Run Restormer over our degraded 
+"""
