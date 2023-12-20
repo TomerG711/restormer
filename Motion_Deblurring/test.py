@@ -31,8 +31,8 @@ parser.add_argument('--original_dir', default='./originals/', type=str)
 args = parser.parse_args()
 
 ####### Load yaml #######
-yaml_file = '/opt/restormer/Motion_Deblurring/Options/Deblurring_Restormer.yml'
-# yaml_file = '/opt/restormer/Defocus_Deblurring/Options/DefocusDeblur_Single_8bit_Restormer.yml'
+# yaml_file = '/opt/restormer/Motion_Deblurring/Options/Deblurring_Restormer.yml'
+yaml_file = '/opt/restormer/Defocus_Deblurring/Options/DefocusDeblur_Single_8bit_Restormer.yml'
 import yaml
 
 try:
@@ -70,21 +70,21 @@ psnr_values = []
 lpips_values = []
 
 # Set up logging
-log_file_path = os.path.join(args.result_dir, 'gopro_test_motion_deblurring_0p05_log.txt')
+log_file_path = os.path.join(args.result_dir, 'celeba_gauss_deblurring_0_log.txt')
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
 logging.getLogger().addHandler(console_handler)
-logging.info(f'{args.weights} with Noise 0.05 for GoPro Test Dataset')
+logging.info(f'{args.weights} with Noise 0 for CelebA Dataset')
 
 with torch.no_grad():
     # for file_ in tqdm(files):
-    # for idx, file_ in enumerate(tqdm(files)):
-    for idx in range(1111):
+    for idx, file_ in enumerate(tqdm(files)):
+    # for idx in range(1111):
         # print(file_)
         # file_name = file_.split('/')[-1]
         # continue
-        input_file = args.input_dir + f"/Apy/y_{idx}.png"
+        input_file = args.input_dir + f"/y_{idx}.png"
         # print(input_file)
         torch.cuda.ipc_collect()
         torch.cuda.empty_cache()
@@ -111,7 +111,7 @@ with torch.no_grad():
                        img_as_ubyte(restored))
 
         # Load original image
-        origin_file = args.input_dir + f"/Apy/orig_{idx}.png"
+        origin_file = args.original_dir + f"/orig_{idx}.png"
         # origin_file = args.original_dir + f"/{file_name}"
         # print(origin_file)
         orig_img = np.float32(utils.load_img(origin_file)) / 255.
